@@ -45,115 +45,6 @@ async function mainFunction(tabId, apiUrl) {
     return null;
   };
 
-  const setRecentEmailList = async (tabId, emailList) => {
-    chrome.storage.local.set({ ["email_list_" + tabId]: emailList });
-  };
-
-  const getRecentEmailList = async (tabId) => {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(["email_list_" + tabId], (result) =>
-        resolve(result["email_list_" + tabId])
-      );
-    });
-  };
-
-  const addEmailHoverPreview = () => {
-    console.log("🔍 이메일 툴팁 기능을 추가합니다.");
-    const emailElements = document.querySelectorAll(".css-15hz540");
-    console.log(emailElements);
-    let count = 0;
-    let tooltipLock = false;
-    emailElements.forEach((element, index) => {
-      element.addEventListener("mouseover", async (event) => {
-        if (tooltipLock) return; // 🔒 이미 실행 중이면 무시
-        tooltipLock = true;
-
-        // new Promise(async (resolve) => {
-        //   await setTimeout(resolve, 100);
-        //   tooltipLock = false;
-        // });
-
-        count += 1;
-        console.log("이메온 마우스 오버", count, index);
-
-        const emailList = await getRecentEmailList(tabId);
-        console.log("emailList", emailList);
-
-        if (!emailList) return;
-
-        const emailId = emailList[index].id;
-        const content = await getCachedContent(emailId);
-        removeExistingPreview();
-
-        const previewBox = document.createElement("div");
-        previewBox.classList.add("email-preview-box");
-        previewBox.innerText = content;
-        previewBox.style.position = "absolute";
-        previewBox.style.backgroundColor = "white";
-        previewBox.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
-        previewBox.style.border = "1px solid #ddd";
-        previewBox.style.padding = "10px";
-        previewBox.style.maxWidth = "300px";
-        previewBox.style.maxHeight = "200px";
-        previewBox.style.overflow = "auto";
-        previewBox.style.zIndex = "9999";
-        previewBox.style.whiteSpace = "pre-wrap";
-        previewBox.style.fontSize = "12px";
-        previewBox.style.color = "#333";
-
-        document.body.appendChild(previewBox);
-
-        let mouseX = event.clientX;
-        let mouseY = event.clientY;
-
-        // 기본 위치 (마우스 포인터 기준)
-        let top = mouseY + 20;
-        let left = mouseX + 20;
-
-        // 화면 경계를 넘지 않도록 조정
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-
-        if (top + previewBox.offsetHeight > viewportHeight) {
-          top = mouseY - previewBox.offsetHeight - 20; // 아래쪽 공간이 부족하면 위로
-        }
-        if (left + previewBox.offsetWidth > viewportWidth) {
-          left = mouseX - previewBox.offsetWidth - 20; // 오른쪽 공간이 부족하면 왼쪽으로
-        }
-
-        previewBox.style.top = `${top}px`;
-        previewBox.style.left = `${left}px`;
-
-        console.log("✅ 마우스 위치 기반 툴팁 생성 완료!");
-      });
-
-      // 마우스 아웃 시 삭제
-      element.addEventListener("mouseout", () => {
-        console.log("이메일 마우스 아웃");
-        tooltipLock = false;
-        removeExistingPreview();
-      });
-    });
-  };
-
-  // 기존 프리뷰 제거 함수
-  const removeExistingPreview = () => {
-    const existingPreview = document.querySelectorAll(".email-preview-box");
-    if (existingPreview) {
-      existingPreview.forEach((element) => {
-        element.remove();
-      });
-    }
-  };
-
-  const tooltip = () => {
-    try {
-      addEmailHoverPreview();
-    } catch (error) {
-      console.error("⚠️ DOM 처리 중 오류 발생:", error);
-    }
-  };
-
   const getEmailList = async (apiUrl) => {
     const response = await fetchWithRetryJson(apiUrl + "&summarizer=1", {
       method: "POST",
@@ -222,13 +113,6 @@ async function mainFunction(tabId, apiUrl) {
       emailList.map(async (email) => {
         const params = new URLSearchParams();
         params.append("mailSN", email.id);
-        // params.append("folderSN", "0");
-        // params.append("previewMode", "1");
-        // params.append("prevNextMail", "true");
-        // params.append("threadMail", "true");
-        // params.append("folderName", "");
-        // params.append("charset", "");
-        // params.append("viewAll", "false");
         params.append("markRead", "false");
 
         const emailResponse = await fetchWithRetryJson(
@@ -300,19 +184,17 @@ async function mainFunction(tabId, apiUrl) {
     const emailTitleElements = document.querySelectorAll(".mail_title");
     const emailTitle = emailTitleElements[index];
 
-    if (!emailTitle) return; // 요소가 없으면 종료
+    if (!emailTitle) return;
 
-    const linkElement = emailTitle.querySelector("a"); // a 태그 찾기
-    if (!linkElement) return; // a 태그가 없으면 종료
+    const linkElement = emailTitle.querySelector("a");
+    if (!linkElement) return;
 
-    // span 태그 생성
     const spanElement = document.createElement("span");
-    spanElement.className = "text"; // 클래스 이름 설정
-    spanElement.textContent = " ✨요약: " + summary + "✨"; // 내용 추가
+    spanElement.className = "text";
+    spanElement.textContent = " ✨요약: " + summary + "✨";
     spanElement.style.fontSize = "12px";
     spanElement.style.fontStyle = "italic";
 
-    // a 태그 바로 아래에 추가
     linkElement
       .querySelector(".text")
       .insertAdjacentElement("afterend", spanElement);
@@ -322,7 +204,6 @@ async function mainFunction(tabId, apiUrl) {
     try {
       const initWebUrl = window.location.href;
       const emailList = await getEmailList(apiUrl);
-      setRecentEmailList(tabId, emailList);
       if (!emailList.length) return console.warn("📭 이메일이 없습니다.");
       const { contentAndSummaryCached, contentCached, noCached } =
         await divideEmailList(emailList);
@@ -351,6 +232,5 @@ async function mainFunction(tabId, apiUrl) {
     }
   };
 
-  // tooltip();
   summary();
 }
