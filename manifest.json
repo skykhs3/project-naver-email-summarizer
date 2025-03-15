@@ -1,16 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Dooray Mail Summarizer",
+  "name": "Naver Mail Summarizer",
   "version": "1.0.2",
-  "description": "Dooray 메일 내용을 요약하여 목록 창에 표시합니다.",
+  "description": "네이버 메일 내용을 요약하여 목록 창에 표시합니다.",
   "permissions": ["scripting", "activeTab", "storage","webRequest"],
-  "host_permissions": ["https://kaist.gov-dooray.com/*"],
+  "host_permissions": ["https://mail.naver.com/*"],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://kaist.gov-dooray.com/*"],
+      "matches": ["https://mail.naver.com/*"],
       "js": ["content.js"]
     }
   ],

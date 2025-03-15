@@ -1,10 +1,10 @@
-# Dooray 이메일 요약 크롬 확장 프로그램
+# 네이버 이메일 요약 크롬 확장 프로그램
 
-이 크롬 확장 프로그램은 **Dooray** 이메일을 자동으로 요약해주는 도구입니다. 이메일 내용을 OpenAI API를 통해 요약하며, 요약된 내용을 손쉽게 확인할 수 있도록 도와줍니다.
+이 크롬 확장 프로그램은 **네이버 이메일**을 자동으로 요약해주는 도구입니다. 이메일 내용을 OpenAI API를 통해 요약하며, 요약된 내용을 손쉽게 확인할 수 있도록 도와줍니다.
 
 ## 기능
 
-- Dooray 이메일을 자동으로 요약하여 제공
+- 네이버 이메일을 자동으로 요약하여 제공
 - OpenAI API를 이용한 텍스트 요약
 - 이메일 요약 내용 캐시 삭제 기능
 - 사용자가 API 키를 입력하여 안전하게 요약 작업 수행
@@ -12,10 +12,10 @@
 ## 설치 방법
 
 1. **크롬 웹 스토어에서 확장 프로그램 다운로드**
-   - [chrome 웹 스토어](https://chromewebstore.google.com/detail/dooray-mail-summarizer/cgmlaihdnopmeddppebdchfknlpeeiap)에서 직접 설치합니다.
+   - [chrome 웹 스토어]()에서 직접 설치합니다.
 
 2. **개발자 모드에서 확장 프로그램 추가**
-   1. [GitHub 프로젝트 페이지](https://github.com/skykhs3/project-dooray-email-summarizer)에서 소스 코드 파일을 다운로드합니다.
+   1. [GitHub 프로젝트 페이지]()에서 소스 코드 파일을 다운로드합니다.
    2. 크롬 브라우저에서 `chrome://extensions/` 페이지를 엽니다.
    3. 오른쪽 상단의 **개발자 모드**를 활성화합니다.
    4. **압축 해제된 확장 프로그램을 로드**를 클릭하고 다운로드한 프로젝트 폴더를 선택하여 추가합니다.
@@ -55,4 +55,4 @@
 
 ---
 
-문의 사항이 있거나 도움말이 필요하면 [GitHub Issues](https://github.com/skykhs3/project-dooray-email-summarizer/issues)에서 질문을 남겨주세요.
+문의 사항이 있거나 도움말이 필요하면 [GitHub Issues]()에서 질문을 남겨주세요.
