@@ -231,32 +231,38 @@ async function mainFunction(tabId, apiUrl) {
     return { contentAndSummaryCached, contentCached, noCached };
   };
 
-  const fetchEmailContents = async (emailList) => {
-    const emailContents = [];
-    await Promise.all(
-      emailList.map(async (email) => {
-        const params = new URLSearchParams();
-        params.append("mailSN", email.id);
-        params.append("markRead", "false");
+  const fetchEmailContent = async (email) => {
+    const params = new URLSearchParams({
+      mailSN: email.id,
+      markRead: "false",
+    });
 
-        const emailResponse = await fetchWithRetryJson(
-          `https://mail.naver.com/json/read`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              Accept: "application/json",
-            },
-            body: params.toString(),
-          }
-        );
-        console.log(email.id);
-        const content = emailResponse?.mailInfo?.body || "";
-        setCachedContent(email.id, content);
-        emailContents.push({ ...email, content: content });
-      })
-    );
-    return emailContents;
+    try {
+      const emailResponse = await fetchWithRetryJson(
+        `https://mail.naver.com/json/read`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Accept: "application/json",
+          },
+          body: params.toString(),
+        }
+      );
+
+      const content = emailResponse?.mailInfo?.body || "";
+      setCachedContent(email.id, content);
+      console.log(email.id);
+
+      return { ...email, content };
+    } catch (error) {
+      console.error(`Failed to fetch email content for ${email.id}:`, error);
+      return { ...email, content: "" }; // 실패 시 빈 내용 반환
+    }
+  };
+
+  const fetchEmailListContents = async (emailList) => {
+    return Promise.all(emailList.map(fetchEmailContent));
   };
 
   const fetchLLM = async (emailContents, initWebUrl) => {
