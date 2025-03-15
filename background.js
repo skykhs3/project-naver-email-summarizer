@@ -1,6 +1,6 @@
 chrome.webRequest.onCompleted.addListener(
   async (details) => {
-    if (details.url.includes("&version=1")) return;
+    if (details.url.includes("&summarizer=1")) return;
 
     const consent = await new Promise((resolve) => {
       chrome.storage.local.get(["consent"], (result) =>
@@ -17,7 +17,7 @@ chrome.webRequest.onCompleted.addListener(
     });
   },
   {
-    urls: ["https://kaist.gov-dooray.com/v2/wapi/mails?*"],
+    urls: ["https://mail.naver.com/json/list?*"],
   }
 );
 
@@ -56,8 +56,6 @@ async function mainFunction(tabId, apiUrl) {
       );
     });
   };
-
-  const process = () => {};
 
   const addEmailHoverPreview = () => {
     console.log("🔍 이메일 툴팁 기능을 추가합니다.");
@@ -157,10 +155,10 @@ async function mainFunction(tabId, apiUrl) {
   };
 
   const getEmailList = async (apiUrl) => {
-    const response = await fetchWithRetryJson(apiUrl + "&version=1", {
-      method: "GET",
+    const response = await fetchWithRetryJson(apiUrl + "&summarizer=1", {
+      method: "POST",
     });
-    return response?.result?.contents || [];
+    return response?.mailData || [];
   };
 
   const getCachedContent = async (emailId) => {
@@ -190,12 +188,12 @@ async function mainFunction(tabId, apiUrl) {
   const divideEmailList = async (emailList) => {
     const cachedEmailList = await Promise.all(
       emailList.map(async (email, index) => {
-        const content = await getCachedContent(email.id);
-        const summary = await getCachedSummary(email.id);
+        const content = await getCachedContent(email.mailSN);
+        const summary = await getCachedSummary(email.mailSN);
         return {
           content: content,
           summary: summary,
-          id: email.id,
+          id: email.mailSN,
           index: index,
         };
       })
@@ -222,28 +220,31 @@ async function mainFunction(tabId, apiUrl) {
     const emailContents = [];
     await Promise.all(
       emailList.map(async (email) => {
+        const params = new URLSearchParams();
+        params.append("mailSN", email.id);
+        // params.append("folderSN", "0");
+        // params.append("previewMode", "1");
+        // params.append("prevNextMail", "true");
+        // params.append("threadMail", "true");
+        // params.append("folderName", "");
+        // params.append("charset", "");
+        // params.append("viewAll", "false");
+        params.append("markRead", "false");
+
         const emailResponse = await fetchWithRetryJson(
-          `https://kaist.gov-dooray.com/v2/wapi/mails/${email.id}?render=html`,
-          { method: "GET" }
+          `https://mail.naver.com/json/read`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              Accept: "application/json",
+            },
+            body: params.toString(),
+          }
         );
         console.log(email.id);
-        const content = emailResponse?.result?.content?.body?.content || "";
+        const content = emailResponse?.mailInfo?.body || "";
         setCachedContent(email.id, content);
-        if (!emailResponse.result.content.mail.flags.read) {
-          fetchWithRetryJson(
-            `https://kaist.gov-dooray.com/v2/wapi/mails/unread`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                mailIdList: [email.id],
-              }),
-            }
-          );
-        }
-
         emailContents.push({ ...email, content: content });
       })
     );
@@ -287,7 +288,7 @@ async function mainFunction(tabId, apiUrl) {
       );
       const summary = responseData?.choices[0]?.message?.content;
       console.log("🔹 요약 결과:", summary);
-      setCachedSummary(email.id, summary);
+      if (summary) setCachedSummary(email.id, summary);
 
       currentUrl = window.location.href;
       if (initWebUrl != currentUrl) return;
@@ -296,54 +297,25 @@ async function mainFunction(tabId, apiUrl) {
   };
 
   const updateDomWithOneSummary = (summary, index) => {
-    const listViewElements = document.querySelectorAll(".css-1eslgmx");
-    const splitViewElements = document.querySelectorAll(".css-1nitlot");
-    if (
-      listViewElements[index] &&
-      !listViewElements[index].parentElement?.classList.contains("wrapper")
-    ) {
-      const wrapper = document.createElement("div");
-      wrapper.classList.add("wrapper");
-      wrapper.style.display = "flex";
-      wrapper.style.flexDirection = "column";
-      wrapper.style.alignItems = "center";
-      wrapper.style.gap = "5px";
-      wrapper.style.width = "100%";
+    const emailTitleElements = document.querySelectorAll(".mail_title");
+    const emailTitle = emailTitleElements[index];
 
-      listViewElements[index].style.width = "100%";
-      listViewElements[index].style.paddingBottom = "2px";
-      listViewElements[index].parentNode.insertBefore(
-        wrapper,
-        listViewElements[index]
-      );
+    if (!emailTitle) return; // 요소가 없으면 종료
 
-      const previewElements = document.querySelectorAll(
-        '[data-testid="MailContentListPreview"]'
-      );
-      if (previewElements[index]) previewElements[index].style.display = "none";
+    const linkElement = emailTitle.querySelector("a"); // a 태그 찾기
+    if (!linkElement) return; // a 태그가 없으면 종료
 
-      const summaryText = document.createElement("div");
-      summaryText.classList.add("summary-text");
-      summaryText.innerText = summary || "요약 불가";
-      summaryText.style.fontSize = "14px";
-      summaryText.style.color = "gray";
-      summaryText.style.width = "100%";
-      summaryText.style.paddingBottom = "10px";
-      summaryText.style.textAlign = "start";
-      summaryText.style.whiteSpace = "pre-wrap";
-      summaryText.style.overflow = "hidden";
-      summaryText.style.textOverflow = "ellipsis";
+    // span 태그 생성
+    const spanElement = document.createElement("span");
+    spanElement.className = "text"; // 클래스 이름 설정
+    spanElement.textContent = " ✨요약: " + summary + "✨"; // 내용 추가
+    spanElement.style.fontSize = "12px";
+    spanElement.style.fontStyle = "italic";
 
-      wrapper.appendChild(listViewElements[index]);
-      wrapper.appendChild(summaryText);
-    } else if (splitViewElements[index]) {
-      const previewElements = document.querySelectorAll(
-        '[data-testid="MailContentListPreview"]'
-      );
-      if (!previewElements[index]) return;
-      previewElements[index].style.whiteSpace = "pre-wrap";
-      previewElements[index].innerText = summary || "요약 불가";
-    }
+    // a 태그 바로 아래에 추가
+    linkElement
+      .querySelector(".text")
+      .insertAdjacentElement("afterend", spanElement);
   };
 
   const summary = async () => {
@@ -363,7 +335,12 @@ async function mainFunction(tabId, apiUrl) {
         });
       }
 
-      const emails = await fetchEmailContents(noCached);
+      let emails;
+      try {
+        emails = await fetchEmailContents(noCached);
+      } catch (e) {
+        throw Error("fetchEmailContents error");
+      }
       console.log("emails", emails.concat(contentCached));
       const sortedEmails = emails.concat(contentCached).sort((a, b) => {
         return a.index - b.index;
