@@ -16,7 +16,7 @@
 
 2. **개발자 모드에서 확장 프로그램 추가**
    1. [GitHub 프로젝트 페이지](https://github.com/skykhs3/project-naver-email-summarizer)에서 소스 코드 파일을 다운로드합니다.
-   2. 크롬 브라우저에서 `chrome://extensions/` 페이지를 엽니다.
+   2. 크롬 브라우저에서 [chrome://extensions/](chrome://extensions/) 페이지를 엽니다.
    3. 오른쪽 상단의 **개발자 모드**를 활성화합니다.
    4. **압축 해제된 확장 프로그램을 로드**를 클릭하고 다운로드한 프로젝트 폴더를 선택하여 추가합니다.
 
