@@ -34,13 +34,13 @@
 
 아래는 이메일 요약 기능이 동작하는 예시 GIF입니다. 이 GIF는 확장 프로그램을 사용하는 방법을 단계별로 보여줍니다.
 
-![이메일 요약 예시](/demo.gif)
+![이메일 요약 예시](/demo/demo.gif)
 
-<img src="./demo1.png"/>
+<img src="./demo/demo1.png"/>
 
-<img src="./demo2.png"/>
+<img src="./demo/demo2.png"/>
 
-<img src="./demo3.png"/>
+<img src="./demo/demo3.png"/>
 
 ## 주의사항
 
