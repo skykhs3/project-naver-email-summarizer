@@ -59,20 +59,33 @@ async function mainFunction(tabId, apiUrl) {
 
   const addEmailHoverPreview = () => {
     console.log("🔍 이메일 툴팁 기능을 추가합니다.");
-    const emailElements = document.querySelectorAll(".mail_item");
+    const emailElements = document.querySelectorAll(".mail_inner");
     console.log(emailElements);
     let count = 0;
+    let currentSeeingEmailId = null;
     let tooltipLock = false;
+
+    document.addEventListener("mouseover", (event) => {
+      if (
+        !event.target.closest(".mail_inner") &&
+        !event.target.closest(".email-preview-box")
+      ) {
+        console.log("🖱️ 특정 요소 바깥에서 마우스 오버 발생! 실행합니다.");
+        removeExistingPreview();
+      }
+    });
+
     emailElements.forEach((element, index) => {
       element.addEventListener("mouseover", async (event) => {
         if (tooltipLock) return; // 🔒 이미 실행 중이면 무시
         tooltipLock = true;
 
         new Promise(async (resolve) => {
-          await setTimeout(resolve, 100);
+          await setTimeout(resolve, 220);
           tooltipLock = false;
         });
 
+        currentSeeingEmailId = index;
         count += 1;
         console.log("이메일 마우스 오버", count, index);
 
@@ -93,8 +106,8 @@ async function mainFunction(tabId, apiUrl) {
         previewBox.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.2)";
         previewBox.style.border = "1px solid #ddd";
         previewBox.style.padding = "10px";
-        previewBox.style.maxWidth = "300px";
-        previewBox.style.maxHeight = "200px";
+        previewBox.style.width = "300px";
+        previewBox.style.height = "200px";
         previewBox.style.overflow = "auto";
         previewBox.style.zIndex = "9999";
         previewBox.style.whiteSpace = "pre-wrap";
@@ -105,7 +118,7 @@ async function mainFunction(tabId, apiUrl) {
     <head>
       <style>
         body {
-          transform: scale(0.5); /* 50% 크기로 축소 */
+          transform: scale(0.5); /* 60% 크기로 축소 */
           transform-origin: top left; /* 변환 기준점 설정 */
           width: 200%;
           height: 200%;
@@ -122,18 +135,18 @@ async function mainFunction(tabId, apiUrl) {
         let mouseY = event.clientY;
 
         // 기본 위치 (마우스 포인터 기준)
-        let top = mouseY + 20;
-        let left = mouseX + 20;
+        let top = mouseY + 10;
+        let left = mouseX + 10;
 
         // 화면 경계를 넘지 않도록 조정
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
 
         if (top + previewBox.offsetHeight > viewportHeight) {
-          top = mouseY - previewBox.offsetHeight - 20; // 아래쪽 공간이 부족하면 위로
+          top = mouseY - previewBox.offsetHeight - 10; // 아래쪽 공간이 부족하면 위로
         }
         if (left + previewBox.offsetWidth > viewportWidth) {
-          left = mouseX - previewBox.offsetWidth - 20; // 오른쪽 공간이 부족하면 왼쪽으로
+          left = mouseX - previewBox.offsetWidth - 10; // 오른쪽 공간이 부족하면 왼쪽으로
         }
 
         previewBox.style.top = `${top}px`;
@@ -144,6 +157,7 @@ async function mainFunction(tabId, apiUrl) {
 
       // 마우스 아웃 시 삭제
       element.addEventListener("mouseout", () => {
+        if (currentSeeingEmailId == index) return;
         console.log("이메일 마우스 아웃");
         tooltipLock = false;
         removeExistingPreview();
@@ -317,7 +331,8 @@ async function mainFunction(tabId, apiUrl) {
     if (!emailTitle) return;
 
     const linkElement = emailTitle.querySelector("a");
-    if (!linkElement) return;
+    if (!linkElement || linkElement.querySelectorAll(".text").length >= 2)
+      return;
 
     const spanElement = document.createElement("span");
     spanElement.className = "text";
@@ -349,7 +364,7 @@ async function mainFunction(tabId, apiUrl) {
 
       let emails;
       try {
-        emails = await fetchEmailContents(noCached);
+        emails = await fetchEmailListContents(noCached);
       } catch (e) {
         throw Error("fetchEmailContents error");
       }
