@@ -113,7 +113,8 @@ async function mainFunction(tabId, apiUrl) {
         previewBox.style.whiteSpace = "pre-wrap";
         previewBox.style.fontSize = "12px";
         previewBox.style.color = "#333";
-        previewBox.srcdoc = `
+        previewBox.setAttribute("sandbox", ""); //XSS 공격 방지
+        previewBox.srcdoc = `;
   <html>
     <head>
       <style>
