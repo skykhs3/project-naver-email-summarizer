@@ -10,7 +10,7 @@
 ## 설치 방법
 
 1. **크롬 웹 스토어에서 확장 프로그램 다운로드**
-   - 현재 chrome 웹 스토어 심사 중입니다.
+   - [chrome 웹 스토어](https://chromewebstore.google.com/detail/%EB%84%A4%EC%9D%B4%EB%B2%84-%EB%A9%94%EC%9D%BC-%EC%9A%94%EC%95%BD%EA%B8%B0naver-mail-summ/geddbcdppbknpoomennnelgdngolhibn?authuser=0&hl=ko)
 
 2. **개발자 모드에서 확장 프로그램 추가**
    1. [GitHub 프로젝트 페이지](https://github.com/skykhs3/project-naver-email-summarizer)에서 소스 코드 파일을 다운로드합니다.
