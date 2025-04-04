@@ -113,8 +113,8 @@ async function mainFunction(tabId, apiUrl) {
         previewBox.style.whiteSpace = "pre-wrap";
         previewBox.style.fontSize = "12px";
         previewBox.style.color = "#333";
-        previewBox.setAttribute("sandbox", ""); //XSS 공격 방지
-        previewBox.srcdoc = `;
+        previewBox.setAttribute("sandbox", "allow-same-origin"); //XSS 공격 방지하면서 lazy-load 이미지 로딩 허용
+        previewBox.srcdoc = `
   <html>
     <head>
       <style>
@@ -125,6 +125,26 @@ async function mainFunction(tabId, apiUrl) {
           height: 200%;
         }
       </style>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          // Lazy-loaded 이미지 로딩 처리
+          const lazyImages = document.querySelectorAll('img[loading="lazy"], img[data-src], img[data-original]');
+          lazyImages.forEach(img => {
+            // data-src 또는 data-original 속성이 있는 경우 로딩
+            if (img.dataset.src) {
+              img.src = img.dataset.src;
+            } else if (img.dataset.original) {
+              img.src = img.dataset.original;
+            }
+            
+            // loading="lazy" 속성 제거
+            img.removeAttribute('loading');
+            
+            // 이미지 강제 로딩
+            img.loading = 'eager';
+          });
+        });
+      </script>
     </head>
     <body>${content}</body>
   </html>
@@ -136,7 +156,7 @@ async function mainFunction(tabId, apiUrl) {
         let mouseY = event.clientY;
 
         // 기본 위치 (마우스 포인터 기준)
-        let top = mouseY + 10;
+        let top = mouseY;
         let left = mouseX + 10;
 
         // 화면 경계를 넘지 않도록 조정
@@ -144,7 +164,7 @@ async function mainFunction(tabId, apiUrl) {
         const viewportHeight = window.innerHeight;
 
         if (top + previewBox.offsetHeight > viewportHeight) {
-          top = mouseY - previewBox.offsetHeight - 10; // 아래쪽 공간이 부족하면 위로
+          top = mouseY - previewBox.offsetHeight; // 아래쪽 공간이 부족하면 위로
         }
         if (left + previewBox.offsetWidth > viewportWidth) {
           left = mouseX - previewBox.offsetWidth - 10; // 오른쪽 공간이 부족하면 왼쪽으로
